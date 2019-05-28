@@ -14,8 +14,8 @@ const static PblBoardConfig s_board_config_robert_bb = {
     },
     .flash_size = 4096,  /* Kbytes - larger to aid in development and debugging */
     .ram_size = 512,  /* Kbytes */
-    .num_rows = 228,
-    .num_cols = 200,
+    .num_rows = 240,
+    .num_cols = 400,
     .num_border_rows = 0,
     .num_border_cols = 0,
     .row_major = true,
@@ -67,53 +67,12 @@ void playdate_32f7xx_init(MachineState *machine, const PblBoardConfig *board_con
 
     /* --- Display ------------------------------------------------  */
     spi = (SSIBus *)qdev_get_child_bus(stm.spi_dev[5], "ssi");
-    DeviceState *display_dev = ssi_create_slave_no_init(spi, "pebble-snowy-display");
-
-    /* Create the outputs that the display will drive and associate them with the correct
-     * GPIO input pins on the MCU */
-    qemu_irq display_done_irq = qdev_get_gpio_in((DeviceState *)gpio[STM32_GPIOB_INDEX], 2);
-    qdev_prop_set_ptr(display_dev, "done_output", display_done_irq);
-    qemu_irq display_intn_irq = qdev_get_gpio_in((DeviceState *)gpio[STM32_GPIOB_INDEX], 0);
-    qdev_prop_set_ptr(display_dev, "intn_output", display_intn_irq);
+    DeviceState *display_dev = ssi_create_slave_no_init(spi, "sm-lcd");
 
     qdev_prop_set_int32(display_dev, "num_rows", board_config->num_rows);
     qdev_prop_set_int32(display_dev, "num_cols", board_config->num_cols);
-    qdev_prop_set_int32(display_dev, "num_border_rows", board_config->num_border_rows);
-    qdev_prop_set_int32(display_dev, "num_border_cols", board_config->num_border_cols);
-    qdev_prop_set_uint8(display_dev, "row_major", board_config->row_major);
-    qdev_prop_set_uint8(display_dev, "row_inverted", board_config->row_inverted);
-    qdev_prop_set_uint8(display_dev, "col_inverted", board_config->col_inverted);
-    qdev_prop_set_uint8(display_dev, "round_mask", board_config->round_mask);
 
     qdev_init_nofail(display_dev);
-
-    /* Connect the correct MCU GPIO outputs to the inputs on the display */
-    qemu_irq display_cs;
-    display_cs = qdev_get_gpio_in_named(display_dev, SSI_GPIO_CS, 0);
-    qdev_connect_gpio_out((DeviceState *)gpio[STM32_GPIOA_INDEX], 4, display_cs);
-
-    qemu_irq display_reset;
-    display_reset = qdev_get_gpio_in_named(display_dev, "reset", 0);
-    qdev_connect_gpio_out((DeviceState *)gpio[STM32_GPIOA_INDEX], 3, display_reset);
-
-    qemu_irq display_sclk;
-    display_sclk = qdev_get_gpio_in_named(display_dev, "sclk", 0);
-    qdev_connect_gpio_out((DeviceState *)gpio[STM32_GPIOA_INDEX], 5, display_sclk);
-
-    qemu_irq backlight_enable;
-    backlight_enable = qdev_get_gpio_in_named(display_dev, "backlight_enable", 0);
-    qdev_connect_gpio_out_named((DeviceState *)gpio[STM32_GPIOG_INDEX], "af", 13,
-                                  backlight_enable);
-
-    qemu_irq backlight_level;
-    backlight_level = qdev_get_gpio_in_named(display_dev, "backlight_level", 0);
-    qdev_connect_gpio_out_named((DeviceState *)lptimer, "pwm_ratio_changed", 0, // LPTIM1
-                                  backlight_level);
-
-    qemu_irq display_power;
-    display_power = qdev_get_gpio_in_named(display_dev, "power_ctl", 0);
-    qdev_connect_gpio_out_named((DeviceState *)cpu->env.nvic, "power_out", 0,
-                                  display_power);
 
     // Connect up the uarts
     pebble_connect_uarts_stm32f7xx(uart, board_config);
