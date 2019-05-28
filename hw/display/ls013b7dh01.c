@@ -37,9 +37,12 @@
 #include "ui/pixel_ops.h"
 #include "hw/ssi.h"
 
-#define NUM_ROWS 168
-#define NUM_COLS 144 // 18 bytes
+#define NUM_ROWS (s->num_rows)
+#define NUM_COLS (s->num_cols)
 #define NUM_COL_BYTES (NUM_COLS / 8)
+#define MAX_ROWS 400
+#define MAX_COLS 240
+#define MAX_COL_BYTES (MAX_COLS / 8)
 
 typedef enum {
     COMMAND,
@@ -52,9 +55,11 @@ typedef struct {
     SSISlave ssidev;
     QemuConsole *con;
     bool redraw;
-    uint8_t framebuffer[NUM_ROWS * NUM_COL_BYTES];
+    uint8_t framebuffer[MAX_ROWS * MAX_COL_BYTES];
     int fbindex;
     xfer_state_t state;
+    uint32_t num_rows;
+    uint32_t num_cols;
 
     bool   backlight_enabled;
     float  brightness;
@@ -348,6 +353,8 @@ static int sm_lcd_init(SSISlave *dev)
 }
 
 static Property sm_lcd_init_properties[] = {
+    DEFINE_PROP_UINT32("num_rows", lcd_state, num_rows, 168),
+    DEFINE_PROP_UINT32("num_cols", lcd_state, num_cols, 144),
     DEFINE_PROP_BOOL("rotate_display", lcd_state, rotate_display, true),
     DEFINE_PROP_END_OF_LIST()
 };
