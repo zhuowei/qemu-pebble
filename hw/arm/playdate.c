@@ -25,7 +25,7 @@ const static PblBoardConfig s_board_config_robert_bb = {
 };
 
 
-void pebble_32f7xx_init(MachineState *machine, const PblBoardConfig *board_config)
+void playdate_32f7xx_init(MachineState *machine, const PblBoardConfig *board_config)
 {
     Stm32Gpio *gpio[STM32F7XX_GPIO_COUNT];
     Stm32F7xxUart *uart[STM32F7XX_UART_COUNT];
@@ -132,15 +132,15 @@ void pebble_32f7xx_init(MachineState *machine, const PblBoardConfig *board_confi
     qdev_connect_gpio_out((DeviceState *)gpio[STM32_GPIOD_INDEX], 14, board_vibe_in);
 }
 
-static void pebble_robert_init(MachineState *machine)
+static void playdate_init(MachineState *machine)
 {
-    pebble_32f7xx_init(machine, &s_board_config_robert_bb);
+    playdate_32f7xx_init(machine, &s_board_config_robert_bb);
 }
 
-static void pebble_robert_bb_machine_init(MachineClass *mc)
+static void playdate_machine_init(MachineClass *mc)
 {
-    mc->desc = "Pebble smartwatch (robert)";
-    mc->init = pebble_robert_init;
+    mc->desc = "Panic Playdate (sort of)";
+    mc->init = playdate_init;
 }
 
-DEFINE_MACHINE("pebble-robert-bb", pebble_robert_bb_machine_init)
+DEFINE_MACHINE("playdate", playdate_machine_init)
